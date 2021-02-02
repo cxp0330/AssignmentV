@@ -434,6 +434,16 @@ library(naniar)
 # set working directory:
 #setwd(&quot;&quot;)</code></pre>
 </div>
+<div id="interacting-with-the-api---the-basics" class="section level4">
+<h4>Interacting with the API - the basics</h4>
+<pre class="r"><code>#APIkey &lt;- &quot;7elxdku9GGG5k8j0Xm8KWdANDgecHMV0&quot;
+source(&quot;Cao_Xiping_AssignmentV.R&quot;)
+Venues &lt;- GET(&quot;https://app.ticketmaster.com/discovery/v2/venues?&quot;,
+                    query =list(apikey = APIkey,
+                                local = &quot;*&quot;,
+                                countryCode = &quot;DE&quot;))
+Venues_content &lt;- content(Venues)</code></pre>
+</div>
 
 
 

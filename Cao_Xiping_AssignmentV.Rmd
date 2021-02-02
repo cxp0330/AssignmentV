@@ -27,7 +27,40 @@ library(naniar)
 #setwd("")
 ```
 
+#### Interacting with the API - the basics
 ```{r message=FALSE}
-
+#APIkey <- "7elxdku9GGG5k8j0Xm8KWdANDgecHMV0"
+source("Cao_Xiping_AssignmentV.R")
+Venues <- GET("https://app.ticketmaster.com/discovery/v2/venues?",
+                    query =list(apikey = APIkey,
+                                local = "*",
+                                countryCode = "DE"))
+Venues_content <- content(Venues)
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
