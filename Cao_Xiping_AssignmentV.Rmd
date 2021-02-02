@@ -9,3 +9,5 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+#### Setting up a new GitHub repository
+My project repository: https://github.com/cxp0330/AssignmentV.git
