@@ -436,13 +436,48 @@ library(naniar)
 </div>
 <div id="interacting-with-the-api---the-basics" class="section level4">
 <h4>Interacting with the API - the basics</h4>
-<pre class="r"><code>#APIkey &lt;- &quot;7elxdku9GGG5k8j0Xm8KWdANDgecHMV0&quot;
+<pre class="r"><code># get API key
+#APIkey &lt;- &quot;7elxdku9GGG5k8j0Xm8KWdANDgecHMV0&quot;
 source(&quot;Cao_Xiping_AssignmentV.R&quot;)
+
+# get information from the API
 Venues &lt;- GET(&quot;https://app.ticketmaster.com/discovery/v2/venues?&quot;,
                     query =list(apikey = APIkey,
                                 local = &quot;*&quot;,
                                 countryCode = &quot;DE&quot;))
-Venues_content &lt;- content(Venues)</code></pre>
+Venues_content &lt;- content(Venues)
+
+# total number of venues
+n &lt;- as.numeric(Venues_content[[&quot;page&quot;]][[&quot;totalElements&quot;]])
+pages &lt;- floor(n/20)
+remainder &lt;- n-20*pages
+
+# extract information from the resulting list
+Venues_table &lt;- tibble(name = character(20),
+                       city = character(20),
+                       postalCode =character(20),
+                       address = character(20),
+                       url = character(20),
+                       longitude = character(20),
+                       latitude = character(20))
+for (i in 1:20) {
+  Venues_table$name[i] &lt;- Venues_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]][[i]][[&quot;name&quot;]]
+  Venues_table$city[i] &lt;- Venues_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]][[i]][[&quot;city&quot;]][[&quot;name&quot;]]
+  Venues_table$postalCode[i] &lt;- Venues_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]][[i]][[&quot;postalCode&quot;]]
+  Venues_table$address[i] &lt;- Venues_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]][[1]][[&quot;address&quot;]][[&quot;line1&quot;]]
+  Venues_table$url[i] &lt;- Venues_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]][[i]][[&quot;url&quot;]]
+  if(is.null(Venues_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]][[i]][[&quot;location&quot;]][[&quot;longitude&quot;]])){
+    next
+  } else {
+    Venues_table$longitude[i] &lt;- Venues_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]][[i]][[&quot;location&quot;]][[&quot;longitude&quot;]]
+  }
+    if(is.null(Venues_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]][[i]][[&quot;location&quot;]][[&quot;latitude&quot;]])){
+    next
+  } else {
+    Venues_table$latitude[i] &lt;- Venues_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]][[i]][[&quot;location&quot;]][[&quot;latitude&quot;]]
+  }
+  
+}</code></pre>
 </div>
 
 

@@ -41,18 +41,37 @@ Venues <- GET("https://app.ticketmaster.com/discovery/v2/venues?",
 Venues_content <- content(Venues)
 
 # total number of venues
-n <- as.numeric(Venues_content[["page"]][["size"]])
+n <- as.numeric(Venues_content[["page"]][["totalElements"]])
+pages <- floor(n/20)
+remainder <- n-20*pages
 
 # extract information from the resulting list
-Venues_table <- tibble(name = character(n),
-                       city = character(n),
-                       postalCode =character(n),
-                       address = character(n),
-                       url = character(n),
-                       longitude = character(n),
-                       latitude = character(n))
+Venues_table <- tibble(name = character(20),
+                       city = character(20),
+                       postalCode =character(20),
+                       address = character(20),
+                       url = character(20),
+                       longitude = character(20),
+                       latitude = character(20))
+for (i in 1:20) {
+  Venues_table$name[i] <- Venues_content[["_embedded"]][["venues"]][[i]][["name"]]
+  Venues_table$city[i] <- Venues_content[["_embedded"]][["venues"]][[i]][["city"]][["name"]]
+  Venues_table$postalCode[i] <- Venues_content[["_embedded"]][["venues"]][[i]][["postalCode"]]
+  Venues_table$address[i] <- Venues_content[["_embedded"]][["venues"]][[1]][["address"]][["line1"]]
+  Venues_table$url[i] <- Venues_content[["_embedded"]][["venues"]][[i]][["url"]]
+  if(is.null(Venues_content[["_embedded"]][["venues"]][[i]][["location"]][["longitude"]])){
+    next
+  } else {
+    Venues_table$longitude[i] <- Venues_content[["_embedded"]][["venues"]][[i]][["location"]][["longitude"]]
+  }
+    if(is.null(Venues_content[["_embedded"]][["venues"]][[i]][["location"]][["latitude"]])){
+    next
+  } else {
+    Venues_table$latitude[i] <- Venues_content[["_embedded"]][["venues"]][[i]][["location"]][["latitude"]]
+  }
+  
+}
 ```
-
 
 
 
