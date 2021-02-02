@@ -91,7 +91,7 @@ for (j in 1:pages) {
                     query =list(apikey = APIkey,
                                 local = "*",
                                 countryCode = "DE",
-                                page = j))
+                                page = "j"))
     Venues2_content <- content(Venues2)
         #name
         if(is.null(Venues2_content[["_embedded"]][["venues"]][[i]][["name"]])){
@@ -143,6 +143,13 @@ for (j in 1:pages) {
 
 
 
+```{r message=FALSE}
+Venues3 <- GET("https://app.ticketmaster.com/discovery/v2/venues?",
+                    query =list(apikey = APIkey,
+                                local = "*",
+                                countryCode = "DE"))
+data <- fromJSON(rawToChar(Venues3$content))
+```
 
 
 
