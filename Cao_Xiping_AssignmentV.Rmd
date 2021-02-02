@@ -11,3 +11,23 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #### Setting up a new GitHub repository
 My project repository: https://github.com/cxp0330/AssignmentV.git
+
+####Interacting with the API - the basics
+```{r message=FALSE}
+#load packages
+rm(list = ls())
+
+library(jsonlite)
+library(httr)
+library(rlist)
+library(tidyverse)
+library(naniar)
+
+# set working directory:
+#setwd("")
+```
+
+```{r message=FALSE}
+
+```
+
