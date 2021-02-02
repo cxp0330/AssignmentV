@@ -29,13 +29,28 @@ library(naniar)
 
 #### Interacting with the API - the basics
 ```{r message=FALSE}
+# get API key
 #APIkey <- "7elxdku9GGG5k8j0Xm8KWdANDgecHMV0"
 source("Cao_Xiping_AssignmentV.R")
+
+# get information from the API
 Venues <- GET("https://app.ticketmaster.com/discovery/v2/venues?",
                     query =list(apikey = APIkey,
                                 local = "*",
                                 countryCode = "DE"))
 Venues_content <- content(Venues)
+
+# total number of venues
+n <- as.numeric(Venues_content[["page"]][["size"]])
+
+# extract information from the resulting list
+Venues_table <- tibble(name = character(n),
+                       city = character(n),
+                       postalCode =character(n),
+                       address = character(n),
+                       url = character(n),
+                       longitude = character(n),
+                       latitude = character(n))
 ```
 
 
