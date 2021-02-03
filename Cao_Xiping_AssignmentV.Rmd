@@ -49,6 +49,7 @@ Venues1_table <- tibble(name = Venues1_table$name,
                         url = Venues1_table$url,
                         longitude = Venues1_table$location$longitude,
                         latitude = Venues1_table$location$latitude)
+
 glimpse(Venues1_table)
 ```
 
@@ -74,7 +75,13 @@ Venues3_table <- tibble(name = Venues3_table$name,
                         longitude = Venues3_table$location$longitude,
                         latitude = Venues3_table$location$latitude)
 Venues4_table <- bind_rows(Venues3_table, Venues1_table)
+
 glimpse(Venues4_table)
+```
+
+#### Visualizing the extracted data
+```{r}
+
 ```
 
 
