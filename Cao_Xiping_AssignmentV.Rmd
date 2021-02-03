@@ -22,6 +22,7 @@ library(httr)
 library(rlist)
 library(tidyverse)
 library(naniar)
+library(dplyr)
 
 # set working directory:
 #setwd("")
@@ -29,127 +30,53 @@ library(naniar)
 
 #### Interacting with the API - the basics
 ```{r message=FALSE}
-# get API key
+# set API key
 #APIkey <- "7elxdku9GGG5k8j0Xm8KWdANDgecHMV0"
 source("Cao_Xiping_AssignmentV.R")
 
-# get information from the API
-Venues <- GET("https://app.ticketmaster.com/discovery/v2/venues?",
+Venues1 <- GET("https://app.ticketmaster.com/discovery/v2/venues?",
                     query =list(apikey = APIkey,
                                 local = "*",
+                                #page = 2,
                                 countryCode = "DE"))
-Venues_content <- content(Venues)
+Venues1_content <- fromJSON(rawToChar(Venues1$content))
+Venues1_table <- as_tibble(Venues1_content[["_embedded"]][["venues"]])
 
-# extract information from the resulting list
-Venues_table <- tibble(name = character(20),
-                       city = character(20),
-                       postalCode =character(20),
-                       address = character(20),
-                       url = character(20),
-                       longitude = character(20),
-                       latitude = character(20))
-
-for (i in 1:length(Venues_content[["_embedded"]][["venues"]])) {
-  Venues_table$name[i] <- Venues_content[["_embedded"]][["venues"]][[i]][["name"]]
-  Venues_table$city[i] <- Venues_content[["_embedded"]][["venues"]][[i]][["city"]][["name"]]
-  Venues_table$postalCode[i] <- Venues_content[["_embedded"]][["venues"]][[i]][["postalCode"]]
-  Venues_table$address[i] <- Venues_content[["_embedded"]][["venues"]][[i]][["address"]][["line1"]]
-  Venues_table$url[i] <- Venues_content[["_embedded"]][["venues"]][[i]][["url"]]
-  if(is.null(Venues_content[["_embedded"]][["venues"]][[i]][["location"]][["longitude"]])){
-    next
-  } else {
-    Venues_table$longitude[i] <- Venues_content[["_embedded"]][["venues"]][[i]][["location"]][["longitude"]]
-  }
-    if(is.null(Venues_content[["_embedded"]][["venues"]][[i]][["location"]][["latitude"]])){
-    next
-  } else {
-    Venues_table$latitude[i] <- Venues_content[["_embedded"]][["venues"]][[i]][["location"]][["latitude"]]
-  }
-  
-}
+Venues1_table <- tibble(name = Venues1_table$name,
+                        city = Venues1_table$city$name,
+                        postalCode = Venues1_table$postalCode,
+                        address = Venues1_table$address$line1,
+                        url = Venues1_table$url,
+                        longitude = Venues1_table$location$longitude,
+                        latitude = Venues1_table$location$latitude)
 ```
 
 #### Interacting with the API - advanced
-```{r message=FALSE}
-# total number of venues
-n <- as.numeric(Venues_content[["page"]][["totalElements"]])
-pages <- n %/% 20
-remainder <- n %% 20
-
-# extract information from the resulting list
-Venues2_table <- tibble(name = character(n),
-                       city = character(n),
-                       postalCode =character(n),
-                       address = character(n),
-                       url = character(n),
-                       longitude = character(n),
-                       latitude = character(n))
-
-for (j in 1:pages) {
-  for (i in 1:20) {
-    Venues2 <- GET("https://app.ticketmaster.com/discovery/v2/venues?",
+```{r}
+pages <- as.numeric(Venues1_content[["page"]][["totalPages"]])
+Venues2_table <- list()
+for (i in 1:pages) {
+Venues2 <- GET("https://app.ticketmaster.com/discovery/v2/venues?",
                     query =list(apikey = APIkey,
                                 local = "*",
-                                countryCode = "DE",
-                                page = "j"))
-    Venues2_content <- content(Venues2)
-        #name
-        if(is.null(Venues2_content[["_embedded"]][["venues"]][[i]][["name"]])){
-          next
-        } else {
-          Venues2_table$name[i+(j-1)*20] <- Venues2_content[["_embedded"]][["venues"]][[i]][["name"]]
-        }
-        #city
-        if(is.null(Venues2_content[["_embedded"]][["venues"]][[i]][["city"]][["name"]])){
-          next
-        } else {
-          Venues2_table$city[i+(j-1)*20] <- Venues2_content[["_embedded"]][["venues"]][[i]][["city"]][["name"]]
-        }
-        #postalCode
-        if(is.null(Venues2_content[["_embedded"]][["venues"]][[i]][["postalCode"]])){
-          next
-        } else {
-          Venues2_table$postalCode[i+(j-1)*20] <- Venues2_content[["_embedded"]][["venues"]][[i]][["postalCode"]]
-        }
-        #address
-        if(is.null(Venues2_content[["_embedded"]][["venues"]][[i]][["address"]][["line1"]])){
-          next
-        } else {
-          Venues2_table$address[i+(j-1)*20] <- Venues2_content[["_embedded"]][["venues"]][[i]][["address"]][["line1"]]
-        }
-        #url
-        if(is.null(Venues2_content[["_embedded"]][["venues"]][[i]][["url"]] )){
-          next
-        } else {
-         Venues2_table$url[i+(j-1)*20] <- Venues2_content[["_embedded"]][["venues"]][[i]][["url"]] 
-        }
-        #longitude
-        if(is.null(Venues2_content[["_embedded"]][["venues"]][[i]][["location"]][["longitude"]])){
-          next
-        } else {
-          Venues2_table$longitude[i+(j-1)*20] <- Venues2_content[["_embedded"]][["venues"]][[i]][["location"]][["longitude"]]
-        }
-        #latitude
-        if(is.null(Venues2_content[["_embedded"]][["venues"]][[i]][["location"]][["latitude"]])){
-          next
-        } else {
-          Venues2_table$latitude[i+(j-1)*20] <- Venues2_content[["_embedded"]][["venues"]][[i]][["location"]][["latitude"]]
-        }
-    }
-}
-
-
-```
-
-
-
-```{r message=FALSE}
-Venues3 <- GET("https://app.ticketmaster.com/discovery/v2/venues?",
-                    query =list(apikey = APIkey,
-                                local = "*",
+                                page = i,
                                 countryCode = "DE"))
-data <- fromJSON(rawToChar(Venues3$content))
+Venues2_content <- fromJSON(rawToChar(Venues2$content))
+Venues2_table[[i]] <- as_tibble(Venues2_content[["_embedded"]][["venues"]])
+}
+Venues3_table <- do.call(bind_rows, Venues2_table)
+Venues3_table <- tibble(name = Venues3_table$name,
+                        city = Venues3_table$city$name,
+                        postalCode = Venues3_table$postalCode,
+                        address = Venues3_table$address$line1,
+                        url = Venues3_table$url,
+                        longitude = Venues3_table$location$longitude,
+                        latitude = Venues3_table$location$latitude)
+Venues4_table <- bind_rows(Venues3_table, Venues1_table)
 ```
+
+
+
 
 
 
