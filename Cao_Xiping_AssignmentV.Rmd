@@ -81,7 +81,6 @@ glimpse(Venues4_table)
 
 #### Visualizing the extracted data
 ```{r message=FALSE}
-#Venues5_table <- Venues4_table[,c("longitude", "latitude")]
 Venues4_table$longitude[Venues4_table$longitude<5.866944 | Venues4_table$longitude>15.043611] <- NA
 Venues4_table$latitude[Venues4_table$latitude < 47.271679 | Venues4_table$latitude> 55.0846] <- NA
 
