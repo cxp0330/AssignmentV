@@ -456,6 +456,7 @@ Venues1_table &lt;- tibble(name = Venues1_table$name,
                         url = Venues1_table$url,
                         longitude = Venues1_table$location$longitude,
                         latitude = Venues1_table$location$latitude)
+
 glimpse(Venues1_table)</code></pre>
 <pre><code>## Rows: 20
 ## Columns: 7
@@ -489,8 +490,9 @@ Venues3_table &lt;- tibble(name = Venues3_table$name,
                         longitude = Venues3_table$location$longitude,
                         latitude = Venues3_table$location$latitude)
 Venues4_table &lt;- bind_rows(Venues3_table, Venues1_table)
+
 glimpse(Venues4_table)</code></pre>
-<pre><code>## Rows: 4,583
+<pre><code>## Rows: 4,563
 ## Columns: 7
 ## $ name       &lt;chr&gt; &quot;Beach Center Hamburg&quot;, &quot;Saalbau Titusforum&quot;, &quot;Ev. Stadtki…
 ## $ city       &lt;chr&gt; &quot;Hamburg&quot;, &quot;Frankfurt am Main&quot;, &quot;Westerkappeln&quot;, &quot;Wildesha…
@@ -499,6 +501,9 @@ glimpse(Venues4_table)</code></pre>
 ## $ url        &lt;chr&gt; &quot;http://www.ticketmaster.de/venue/290508&quot;, &quot;http://www.tic…
 ## $ longitude  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
 ## $ latitude   &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</code></pre>
+</div>
+<div id="visualizing-the-extracted-data" class="section level4">
+<h4>Visualizing the extracted data</h4>
 </div>
 
 
