@@ -47,8 +47,8 @@ Venues1_table <- tibble(name = Venues1_table$name,
                         postalCode = Venues1_table$postalCode,
                         address = Venues1_table$address$line1,
                         url = Venues1_table$url,
-                        longitude = Venues1_table$location$longitude,
-                        latitude = Venues1_table$location$latitude)
+                        longitude = as.numeric(Venues1_table$location$longitude),
+                        latitude = as.numeric(Venues1_table$location$latitude))
 
 glimpse(Venues1_table)
 ```
@@ -72,16 +72,25 @@ Venues3_table <- tibble(name = Venues3_table$name,
                         postalCode = Venues3_table$postalCode,
                         address = Venues3_table$address$line1,
                         url = Venues3_table$url,
-                        longitude = Venues3_table$location$longitude,
-                        latitude = Venues3_table$location$latitude)
+                        longitude = as.numeric(Venues3_table$location$longitude),
+                        latitude = as.numeric(Venues3_table$location$latitude))
 Venues4_table <- bind_rows(Venues3_table, Venues1_table)
 
 glimpse(Venues4_table)
 ```
 
 #### Visualizing the extracted data
-```{r}
+```{r message=FALSE}
+#Venues5_table <- Venues4_table[,c("longitude", "latitude")]
+Venues4_table$longitude[Venues4_table$longitude<5.866944 | Venues4_table$longitude>15.043611] <- NA
+Venues4_table$latitude[Venues4_table$latitude < 47.271679 | Venues4_table$latitude> 55.0846] <- NA
 
+ggplot() + 
+  geom_polygon(aes(x = long, y = lat, group = group), data = map_data("world", region = "Germany"), fill = "grey90",color = "black") +
+  geom_point(aes(x = longitude, y = latitude), data = Venues4_table) +
+  theme_void() + 
+  coord_quickmap() +
+  labs(title = "Event locations across Germany", caption = "Source: ticketmaster.com") + theme(title = element_text(size=8, face='bold'), plot.caption = element_text(face = "italic"))
 ```
 
 
