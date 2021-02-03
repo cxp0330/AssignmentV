@@ -430,54 +430,75 @@ library(httr)
 library(rlist)
 library(tidyverse)
 library(naniar)
+library(dplyr)
 
 # set working directory:
 #setwd(&quot;&quot;)</code></pre>
 </div>
 <div id="interacting-with-the-api---the-basics" class="section level4">
 <h4>Interacting with the API - the basics</h4>
-<pre class="r"><code># get API key
+<pre class="r"><code># set API key
 #APIkey &lt;- &quot;7elxdku9GGG5k8j0Xm8KWdANDgecHMV0&quot;
 source(&quot;Cao_Xiping_AssignmentV.R&quot;)
 
-# get information from the API
-Venues &lt;- GET(&quot;https://app.ticketmaster.com/discovery/v2/venues?&quot;,
+Venues1 &lt;- GET(&quot;https://app.ticketmaster.com/discovery/v2/venues?&quot;,
                     query =list(apikey = APIkey,
                                 local = &quot;*&quot;,
+                                #page = 2,
                                 countryCode = &quot;DE&quot;))
-Venues_content &lt;- content(Venues)
+Venues1_content &lt;- fromJSON(rawToChar(Venues1$content))
+Venues1_table &lt;- as_tibble(Venues1_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]])
 
-# total number of venues
-n &lt;- as.numeric(Venues_content[[&quot;page&quot;]][[&quot;totalElements&quot;]])
-pages &lt;- floor(n/20)
-remainder &lt;- n-20*pages
-
-# extract information from the resulting list
-Venues_table &lt;- tibble(name = character(20),
-                       city = character(20),
-                       postalCode =character(20),
-                       address = character(20),
-                       url = character(20),
-                       longitude = character(20),
-                       latitude = character(20))
-for (i in 1:20) {
-  Venues_table$name[i] &lt;- Venues_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]][[i]][[&quot;name&quot;]]
-  Venues_table$city[i] &lt;- Venues_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]][[i]][[&quot;city&quot;]][[&quot;name&quot;]]
-  Venues_table$postalCode[i] &lt;- Venues_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]][[i]][[&quot;postalCode&quot;]]
-  Venues_table$address[i] &lt;- Venues_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]][[1]][[&quot;address&quot;]][[&quot;line1&quot;]]
-  Venues_table$url[i] &lt;- Venues_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]][[i]][[&quot;url&quot;]]
-  if(is.null(Venues_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]][[i]][[&quot;location&quot;]][[&quot;longitude&quot;]])){
-    next
-  } else {
-    Venues_table$longitude[i] &lt;- Venues_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]][[i]][[&quot;location&quot;]][[&quot;longitude&quot;]]
-  }
-    if(is.null(Venues_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]][[i]][[&quot;location&quot;]][[&quot;latitude&quot;]])){
-    next
-  } else {
-    Venues_table$latitude[i] &lt;- Venues_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]][[i]][[&quot;location&quot;]][[&quot;latitude&quot;]]
-  }
-  
-}</code></pre>
+Venues1_table &lt;- tibble(name = Venues1_table$name,
+                        city = Venues1_table$city$name,
+                        postalCode = Venues1_table$postalCode,
+                        address = Venues1_table$address$line1,
+                        url = Venues1_table$url,
+                        longitude = Venues1_table$location$longitude,
+                        latitude = Venues1_table$location$latitude)
+glimpse(Venues1_table)</code></pre>
+<pre><code>## Rows: 20
+## Columns: 7
+## $ name       &lt;chr&gt; &quot;Gruenspan&quot;, &quot;Fabrik&quot;, &quot;Ev. St. Jacobi Kirche&quot;, &quot;Evangelis…
+## $ city       &lt;chr&gt; &quot;Hamburg&quot;, &quot;Coesfeld&quot;, &quot;Sangerhausen&quot;, &quot;Senden&quot;, &quot;Berlin&quot;,…
+## $ postalCode &lt;chr&gt; &quot;22767&quot;, &quot;48653&quot;, &quot;06526&quot;, &quot;48308&quot;, &quot;10785&quot;, &quot;64646&quot;, &quot;490…
+## $ address    &lt;chr&gt; &quot;Grosse Freiheit 58&quot;, &quot;Dreischkamp 26&quot;, &quot;Marktplatz&quot;, &quot;Ste…
+## $ url        &lt;chr&gt; &quot;http://www.ticketmaster.de/venue/287155&quot;, &quot;https://www.ti…
+## $ longitude  &lt;chr&gt; &quot;9.958075&quot;, &quot;7.16711&quot;, NA, NA, NA, NA, NA, NA, NA, NA, NA,…
+## $ latitude   &lt;chr&gt; &quot;53.551885&quot;, &quot;51.9263&quot;, NA, NA, NA, NA, NA, NA, NA, NA, NA…</code></pre>
+</div>
+<div id="interacting-with-the-api---advanced" class="section level4">
+<h4>Interacting with the API - advanced</h4>
+<pre class="r"><code>pages &lt;- as.numeric(Venues1_content[[&quot;page&quot;]][[&quot;totalPages&quot;]])
+Venues2_table &lt;- list()
+for (i in 1:pages) {
+Venues2 &lt;- GET(&quot;https://app.ticketmaster.com/discovery/v2/venues?&quot;,
+                    query =list(apikey = APIkey,
+                                local = &quot;*&quot;,
+                                page = i,
+                                countryCode = &quot;DE&quot;))
+Venues2_content &lt;- fromJSON(rawToChar(Venues2$content))
+Venues2_table[[i]] &lt;- as_tibble(Venues2_content[[&quot;_embedded&quot;]][[&quot;venues&quot;]])
+}
+Venues3_table &lt;- do.call(bind_rows, Venues2_table)
+Venues3_table &lt;- tibble(name = Venues3_table$name,
+                        city = Venues3_table$city$name,
+                        postalCode = Venues3_table$postalCode,
+                        address = Venues3_table$address$line1,
+                        url = Venues3_table$url,
+                        longitude = Venues3_table$location$longitude,
+                        latitude = Venues3_table$location$latitude)
+Venues4_table &lt;- bind_rows(Venues3_table, Venues1_table)
+glimpse(Venues4_table)</code></pre>
+<pre><code>## Rows: 4,583
+## Columns: 7
+## $ name       &lt;chr&gt; &quot;Beach Center Hamburg&quot;, &quot;Saalbau Titusforum&quot;, &quot;Ev. Stadtki…
+## $ city       &lt;chr&gt; &quot;Hamburg&quot;, &quot;Frankfurt am Main&quot;, &quot;Westerkappeln&quot;, &quot;Wildesha…
+## $ postalCode &lt;chr&gt; &quot;22049&quot;, &quot;60439&quot;, &quot;49492&quot;, &quot;27793&quot;, &quot;01010&quot;, &quot;60529&quot;, &quot;010…
+## $ address    &lt;chr&gt; &quot;Alter Teichweg 220&quot;, &quot;Walter Möller Platz&quot;, &quot;Kirchstrasse…
+## $ url        &lt;chr&gt; &quot;http://www.ticketmaster.de/venue/290508&quot;, &quot;http://www.tic…
+## $ longitude  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…
+## $ latitude   &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</code></pre>
 </div>
 
 
