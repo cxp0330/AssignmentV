@@ -35,10 +35,9 @@ library(dplyr)
 source("Cao_Xiping_AssignmentV.R")
 
 # get information from API
-Venues1 <- GET("https://app.ticketmaster.com/discovery/v2/venues?",
+Venues1 <- GET("https://app.ticketmaster.com/discovery/v2/venues",
                     query =list(apikey = APIkey,
-                                local = "*",
-                                #page = 2,
+                                locale = "*",
                                 countryCode = "DE")) 
 
 # extract all content and convert into a data frame
@@ -59,6 +58,7 @@ glimpse(Venues1_table)
 ```
 
 #### Interacting with the API - advanced
+The response only shows information about the first 20 venues. The size of each page is 20 and the "page" default setting of GET function is zero.
 ```{r}
 # how much pages left to extracting information
 pages <- as.numeric(Venues1_content[["page"]][["totalPages"]])
@@ -66,9 +66,9 @@ pages <- as.numeric(Venues1_content[["page"]][["totalPages"]])
 # generate a list to store each page's information using a for loop
 Venues2_table <- list()
 for (i in 1:pages) {
-Venues2 <- GET("https://app.ticketmaster.com/discovery/v2/venues?",
+Venues2 <- GET("https://app.ticketmaster.com/discovery/v2/venues",
                     query =list(apikey = APIkey,
-                                local = "*",
+                                locale = "*",
                                 page = i,
                                 countryCode = "DE"))
 Venues2_content <- fromJSON(rawToChar(Venues2$content))
