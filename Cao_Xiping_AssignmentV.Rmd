@@ -35,78 +35,128 @@ library(dplyr)
 source("Cao_Xiping_AssignmentV.R")
 
 # get information from API
-Venues1 <- GET("https://app.ticketmaster.com/discovery/v2/venues",
+DE_Venues1 <- GET("https://app.ticketmaster.com/discovery/v2/venues",
                     query =list(apikey = APIkey,
                                 locale = "*",
                                 countryCode = "DE")) 
 
 # extract all content and convert into a data frame
-Venues1_content <- fromJSON(rawToChar(Venues1$content))
-Venues1_table <- as_tibble(Venues1_content[["_embedded"]][["venues"]])
+DE_Venues1_content <- fromJSON(rawToChar(DE_Venues1$content))
+DE_Venues1_table <- as_tibble(DE_Venues1_content[["_embedded"]][["venues"]])
 
 # extract specific content
-Venues1_table <- tibble(name = Venues1_table$name,
-                        city = Venues1_table$city$name,
-                        postalCode = Venues1_table$postalCode,
-                        address = Venues1_table$address$line1,
-                        url = Venues1_table$url,
-                        longitude = as.numeric(Venues1_table$location$longitude),
-                        latitude = as.numeric(Venues1_table$location$latitude))
+DE_Venues1_table <- tibble(name = DE_Venues1_table$name,
+                        city = DE_Venues1_table$city$name,
+                        postalCode = DE_Venues1_table$postalCode,
+                        address = DE_Venues1_table$address$line1,
+                        url = DE_Venues1_table$url,
+                        longitude = as.numeric(DE_Venues1_table$location$longitude),
+                        latitude = as.numeric(DE_Venues1_table$location$latitude))
 
 # take a look at the extracted information
-glimpse(Venues1_table)
+glimpse(DE_Venues1_table)
 ```
 
 #### Interacting with the API - advanced
 The response only shows information about the first 20 venues. The size of each page is 20 and the "page" default setting of GET function is zero.
 ```{r}
 # how much pages left to extracting information
-pages <- as.numeric(Venues1_content[["page"]][["totalPages"]])
+pages <- as.numeric(DE_Venues1_content[["page"]][["totalPages"]])
 
 # generate a list to store each page's information using a for loop
-Venues2_table <- list()
+DE_Venues2_table <- list()
 for (i in 1:pages) {
-Venues2 <- GET("https://app.ticketmaster.com/discovery/v2/venues",
+DE_Venues2 <- GET("https://app.ticketmaster.com/discovery/v2/venues",
                     query =list(apikey = APIkey,
                                 locale = "*",
                                 page = i,
                                 countryCode = "DE"))
-Venues2_content <- fromJSON(rawToChar(Venues2$content))
-Venues2_table[[i]] <- as_tibble(Venues2_content[["_embedded"]][["venues"]])
+DE_Venues2_content <- fromJSON(rawToChar(DE_Venues2$content))
+DE_Venues2_table[[i]] <- as_tibble(DE_Venues2_content[["_embedded"]][["venues"]])
 }
 
 # combining the resulting list by rows and extract information needed
-Venues3_table <- do.call(bind_rows, Venues2_table)
-Venues3_table <- tibble(name = Venues3_table$name,
-                        city = Venues3_table$city$name,
-                        postalCode = Venues3_table$postalCode,
-                        address = Venues3_table$address$line1,
-                        url = Venues3_table$url,
-                        longitude = as.numeric(Venues3_table$location$longitude),
-                        latitude = as.numeric(Venues3_table$location$latitude))
+DE_Venues3_table <- do.call(bind_rows, DE_Venues2_table)
+DE_Venues3_table <- tibble(name = DE_Venues3_table$name,
+                        city = DE_Venues3_table$city$name,
+                        postalCode = DE_Venues3_table$postalCode,
+                        address = DE_Venues3_table$address$line1,
+                        url = DE_Venues3_table$url,
+                        longitude = as.numeric(DE_Venues3_table$location$longitude),
+                        latitude = as.numeric(DE_Venues3_table$location$latitude))
 
 # integrating all information into one data frame
-Venues4_table <- bind_rows(Venues3_table, Venues1_table)
+DE_Venues4_table <- bind_rows(DE_Venues3_table, DE_Venues1_table)
 
 # take a look the final extracted information
-glimpse(Venues4_table)
+glimpse(DE_Venues4_table)
 ```
 
 #### Visualizing the extracted data
 ```{r message=FALSE}
 # exclude Venues that are outside the Germany
-Venues4_table$longitude[Venues4_table$longitude<5.866944 | Venues4_table$longitude>15.043611] <- NA
-Venues4_table$latitude[Venues4_table$latitude < 47.271679 | Venues4_table$latitude> 55.0846] <- NA
+DE_Venues4_table$longitude[DE_Venues4_table$longitude<5.866944 | DE_Venues4_table$longitude>15.043611] <- NA
+DE_Venues4_table$latitude[DE_Venues4_table$latitude < 47.271679 | DE_Venues4_table$latitude> 55.0846] <- NA
 
 # plot a Germany map with location of Venues
 ggplot() + 
   geom_polygon(aes(x = long, y = lat, group = group), data = map_data("world", region = "Germany"), fill = "grey90",color = "black") +
-  geom_point(aes(x = longitude, y = latitude), data = Venues4_table) +
+  geom_point(aes(x = longitude, y = latitude), data = DE_Venues4_table) +
   theme_void() + 
   coord_quickmap() +
   labs(title = "Event locations across Germany", caption = "Source: ticketmaster.com") + theme(title = element_text(size=8, face='bold'), plot.caption = element_text(face = "italic"))
 ```
+#### Event locations in other countries
+```{r message=FALSE}
+# In order to get information about clubes in Italy, one only needs to change the "countryCode" option of GET function into "IT"
+IT_Venues1 <- GET("https://app.ticketmaster.com/discovery/v2/venues",
+                    query =list(apikey = APIkey,
+                                locale = "*",
+                                countryCode = "IT")) 
 
+IT_Venues1_content <- fromJSON(rawToChar(IT_Venues1$content))
+IT_Venues1_table <- as_tibble(IT_Venues1_content[["_embedded"]][["venues"]])
+IT_Venues1_table <- tibble(name = IT_Venues1_table$name,
+                        city = IT_Venues1_table$city$name,
+                        postalCode = IT_Venues1_table$postalCode,
+                        address = IT_Venues1_table$address$line1,
+                        url = IT_Venues1_table$url,
+                        longitude = as.numeric(IT_Venues1_table$location$longitude),
+                        latitude = as.numeric(IT_Venues1_table$location$latitude))
+# glimpse(IT_Venues1_table)
+
+pages <- as.numeric(IT_Venues1_content[["page"]][["totalPages"]])
+IT_Venues2_table <- list()
+for (i in 1:pages) {
+IT_Venues2 <- GET("https://app.ticketmaster.com/discovery/v2/venues",
+                    query =list(apikey = APIkey,
+                                locale = "*",
+                                page = i,
+                                countryCode = "IT"))
+IT_Venues2_content <- fromJSON(rawToChar(IT_Venues2$content))
+IT_Venues2_table[[i]] <- as_tibble(IT_Venues2_content[["_embedded"]][["venues"]])
+}
+
+IT_Venues3_table <- do.call(bind_rows, IT_Venues2_table)
+IT_Venues3_table <- tibble(name = IT_Venues3_table$name,
+                        city = IT_Venues3_table$city$name,
+                        postalCode = IT_Venues3_table$postalCode,
+                        address = IT_Venues3_table$address$line1,
+                        url = IT_Venues3_table$url,
+                        longitude = as.numeric(IT_Venues3_table$location$longitude),
+                        latitude = as.numeric(IT_Venues3_table$location$latitude))
+IT_Venues4_table <- bind_rows(IT_Venues3_table, IT_Venues1_table)
+
+#glimpse(IT_Venues4_table)
+
+ggplot() + 
+  geom_polygon(aes(x = long, y = lat, group = group), data = map_data("world", region = "Italy"), fill = "grey90",color = "black") +
+  geom_point(aes(x = longitude, y = latitude), data = IT_Venues4_table) +
+  theme_void() + 
+  coord_quickmap() +
+  labs(title = "Event locations across Germany", caption = "Source: ticketmaster.com") + theme(title = element_text(size=8, face='bold'), plot.caption = element_text(face = "italic"))
+
+```
 
 
 
